@@ -6,7 +6,12 @@ include (DetectCPPZMQVersion)
 
 project(cppzmq VERSION ${DETECTED_CPPZMQ_VERSION})
 
-if (NOT TARGET libzmq AND NOT TARGET libzmq-static)
+if(DEFINED XP_NAMESPACE)
+  set(nSpace ${XP_NAMESPACE}::)
+  set(nameSpace NAMESPACE ${nSpace})
+endif()
+
+if (NOT TARGET ${nSpace}libzmq AND NOT TARGET ${nSpace}libzmq-static)
   find_package(ZeroMQ QUIET)
 
   # libzmq autotools install: fallback to pkg-config
@@ -21,7 +26,7 @@ if (NOT TARGET libzmq AND NOT TARGET libzmq-static)
     message(FATAL_ERROR "ZeroMQ was not found, neither as a CMake package nor via pkg-config")
   endif()
 
-  if (ZeroMQ_FOUND AND NOT (TARGET libzmq OR TARGET libzmq-static))
+  if (ZeroMQ_FOUND AND NOT (TARGET ${nSpace}libzmq OR TARGET ${nSpace}libzmq-static))
     message(FATAL_ERROR "ZeroMQ version not supported!")
   endif()
 endif()
@@ -48,11 +53,11 @@ set(CPPZMQ_HEADERS
 foreach (target cppzmq cppzmq-static)
   add_library(${target} INTERFACE)
   target_include_directories(${target} INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-                                                 $<INSTALL_INTERFACE:include>)
+                                                 $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 endforeach()
 
-target_link_libraries(cppzmq INTERFACE libzmq)
-target_link_libraries(cppzmq-static INTERFACE libzmq-static)
+target_link_libraries(cppzmq INTERFACE ${nSpace}libzmq)
+target_link_libraries(cppzmq-static INTERFACE ${nSpace}libzmq-static)
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
@@ -88,7 +93,7 @@ write_basic_package_version_file(${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Conf
 set(CMAKE_SIZEOF_VOID_P ${CPPZMQ_SIZEOF_VOID_P})
 
 install(EXPORT ${PROJECT_NAME}-targets
-        FILE ${PROJECT_NAME}Targets.cmake
+        FILE ${PROJECT_NAME}Targets.cmake ${nameSpace}
         DESTINATION ${CPPZMQ_CMAKECONFIG_INSTALL_DIR})
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
               ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
