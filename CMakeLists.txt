@@ -6,13 +6,20 @@ include (DetectCPPZMQVersion)
 
 project(cppzmq VERSION ${DETECTED_CPPZMQ_VERSION})
 
+include(flags OPTIONAL)
 if(DEFINED XP_NAMESPACE)
+  set(XP_MODULE_PATH ${CMAKE_MODULE_PATH})
   set(nSpace ${XP_NAMESPACE}::)
   set(nameSpace NAMESPACE ${nSpace})
 endif()
 
 if (NOT TARGET ${nSpace}libzmq AND NOT TARGET ${nSpace}libzmq-static)
-  find_package(ZeroMQ QUIET)
+  if(COMMAND xpFindPkg)
+    xpFindPkg(PKGS libzmq)
+    set(ZeroMQ_FOUND TRUE)
+  else()
+    find_package(ZeroMQ QUIET)
+  endif()
 
   # libzmq autotools install: fallback to pkg-config
   if(NOT ZeroMQ_FOUND)
