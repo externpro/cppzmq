@@ -8,7 +8,6 @@ project(cppzmq VERSION ${DETECTED_CPPZMQ_VERSION})
 
 include(flags OPTIONAL)
 if(DEFINED XP_NAMESPACE)
-  set(XP_MODULE_PATH ${CMAKE_MODULE_PATH})
   set(nSpace ${XP_NAMESPACE}::)
   set(nameSpace NAMESPACE ${nSpace})
 endif()
