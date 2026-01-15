@@ -7,19 +7,17 @@ include (DetectCPPZMQVersion)
 
 project(cppzmq VERSION ${DETECTED_CPPZMQ_VERSION})
 
-include(xpflags)
-if(DEFINED XP_NAMESPACE)
-  set(nSpace ${XP_NAMESPACE}::)
-  set(nameSpace NAMESPACE ${nSpace})
-endif()
-
-if (NOT TARGET ${nSpace}libzmq AND NOT TARGET ${nSpace}libzmq-static)
+if (NOT TARGET libzmq AND NOT TARGET libzmq-static)
   if(COMMAND xpFindPkg)
-    xpFindPkg(PKGS libzmq)
+    find_package(libzmq)
     set(ZeroMQ_FOUND TRUE)
+    set(_libzmq ${XP_NAMESPACE}::libzmq)
+    set(_libzmqStatic ${XP_NAMESPACE}::libzmq-static)
     set(installTargets cppzmq-static)
   else()
     find_package(ZeroMQ QUIET)
+    set(_libzmq libzmq)
+    set(_libzmqStatic libzmq-static)
     set(installTargets cppzmq cppzmq-static)
   endif()
 
@@ -35,7 +33,7 @@ if (NOT TARGET ${nSpace}libzmq AND NOT TARGET ${nSpace}libzmq-static)
     message(FATAL_ERROR "ZeroMQ was not found, neither as a CMake package nor via pkg-config")
   endif()
 
-  if (ZeroMQ_FOUND AND NOT (TARGET ${nSpace}libzmq OR TARGET ${nSpace}libzmq-static))
+  if (ZeroMQ_FOUND AND NOT (TARGET ${_libzmq} OR TARGET ${_libzmqStatic}))
     message(FATAL_ERROR "ZeroMQ version not supported!")
   endif()
 endif()
@@ -65,17 +63,27 @@ foreach (target cppzmq cppzmq-static)
                                                  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 endforeach()
 
-target_link_libraries(cppzmq INTERFACE ${nSpace}libzmq)
-target_link_libraries(cppzmq-static INTERFACE ${nSpace}libzmq-static)
+target_link_libraries(cppzmq INTERFACE ${_libzmq})
+target_link_libraries(cppzmq-static INTERFACE ${_libzmqStatic})
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
-if(NOT DEFINED XP_INSTALL_CMAKEDIR)
-  set(XP_INSTALL_CMAKEDIR ${CMAKE_INSTALL_DATADIR}/cmake)
-endif()
 set(targetsFile ${PROJECT_NAME}Targets)
-xpPackageDevel(TARGETS_FILE ${targetsFile} LIBRARIES ${nSpace}cppzmq-static)
+if(DEFINED XP_NAMESPACE)
+  xpExternPackage(NAMESPACE ${XP_NAMESPACE}
+    TARGETS_FILE ${targetsFile} LIBRARIES ${installTargets}
+    BASE v${cppzmq_VERSION} XPDIFF "patch" DEPS libzmq
+    WEB "https://zeromq.org/" UPSTREAM "github.com/zeromq/cppzmq"
+    DESC "header-only C++ binding for libzmq"
+    LICENSE "[MPL-2.0](http://wiki.zeromq.org/area:licensing 'Mozilla Public License 2.0')"
+    )
+  set(nSpace ${XP_NAMESPACE}::)
+  set(nameSpace NAMESPACE ${nSpace})
+  set(CMAKE_INSTALL_CMAKEDIR ${XP_INSTALL_CMAKEDIR})
+elseif(NOT DEFINED CMAKE_INSTALL_CMAKEDIR)
+  set(CMAKE_INSTALL_CMAKEDIR share/cmake/${PROJECT_NAME})
+endif()
 
 install(TARGETS ${installTargets}
         EXPORT ${PROJECT_NAME}-targets)
@@ -84,7 +92,7 @@ install(FILES ${CPPZMQ_HEADERS}
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 # GNUInstallDirs "DATADIR" wrong here; CMake search path wants "share".
-set(CPPZMQ_CMAKECONFIG_INSTALL_DIR "${XP_INSTALL_CMAKEDIR}" CACHE STRING "install path for cppzmqConfig.cmake")
+set(CPPZMQ_CMAKECONFIG_INSTALL_DIR "${CMAKE_INSTALL_CMAKEDIR}" CACHE STRING "install path for cppzmqConfig.cmake")
 
 configure_file(libzmq-pkg-config/FindZeroMQ.cmake
                libzmq-pkg-config/FindZeroMQ.cmake
