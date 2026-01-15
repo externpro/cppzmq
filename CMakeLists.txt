@@ -69,11 +69,21 @@ target_link_libraries(cppzmq-static INTERFACE ${_libzmqStatic})
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
-if(NOT DEFINED XP_INSTALL_CMAKEDIR)
-  set(XP_INSTALL_CMAKEDIR ${CMAKE_INSTALL_DATADIR}/cmake)
-endif()
 set(targetsFile ${PROJECT_NAME}Targets)
-xpPackageDevel(TARGETS_FILE ${targetsFile} LIBRARIES ${nSpace}cppzmq-static)
+if(DEFINED XP_NAMESPACE)
+  xpExternPackage(NAMESPACE ${XP_NAMESPACE}
+    TARGETS_FILE ${targetsFile} LIBRARIES ${installTargets}
+    BASE v${cppzmq_VERSION} XPDIFF "patch" DEPS libzmq
+    WEB "https://zeromq.org/" UPSTREAM "github.com/zeromq/cppzmq"
+    DESC "header-only C++ binding for libzmq"
+    LICENSE "[MPL-2.0](http://wiki.zeromq.org/area:licensing 'Mozilla Public License 2.0')"
+    )
+  set(nSpace ${XP_NAMESPACE}::)
+  set(nameSpace NAMESPACE ${nSpace})
+  set(CMAKE_INSTALL_CMAKEDIR ${XP_INSTALL_CMAKEDIR})
+elseif(NOT DEFINED CMAKE_INSTALL_CMAKEDIR)
+  set(CMAKE_INSTALL_CMAKEDIR share/cmake/${PROJECT_NAME})
+endif()
 
 install(TARGETS ${installTargets}
         EXPORT ${PROJECT_NAME}-targets)
@@ -82,7 +92,7 @@ install(FILES ${CPPZMQ_HEADERS}
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 # GNUInstallDirs "DATADIR" wrong here; CMake search path wants "share".
-set(CPPZMQ_CMAKECONFIG_INSTALL_DIR "${XP_INSTALL_CMAKEDIR}" CACHE STRING "install path for cppzmqConfig.cmake")
+set(CPPZMQ_CMAKECONFIG_INSTALL_DIR "${CMAKE_INSTALL_CMAKEDIR}" CACHE STRING "install path for cppzmqConfig.cmake")
 
 configure_file(libzmq-pkg-config/FindZeroMQ.cmake
                libzmq-pkg-config/FindZeroMQ.cmake
