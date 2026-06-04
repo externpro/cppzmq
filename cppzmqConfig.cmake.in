@@ -4,8 +4,8 @@
 #
 # ::
 #
-#   cppzmq-static
-#   cppzmq
+#   @nSpace@cppzmq-static
+#   @nSpace@cppzmq
 #
 # This module sets the following variables in your project::
 #
@@ -31,6 +31,6 @@ endif()
 
 if(NOT TARGET @PROJECT_NAME@)
     include("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@Targets.cmake")
-    get_target_property(@PROJECT_NAME@_INCLUDE_DIR cppzmq INTERFACE_INCLUDE_DIRECTORIES)
+    get_target_property(@PROJECT_NAME@_INCLUDE_DIR @nSpace@cppzmq INTERFACE_INCLUDE_DIRECTORIES)
 endif()
 
