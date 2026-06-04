@@ -1,6 +1,5 @@
-cmake_minimum_required(VERSION 3.0.0...3.31)
+cmake_minimum_required(VERSION 3.0.0...4.3)
 
-set(CMAKE_PROJECT_TOP_LEVEL_INCLUDES .devcontainer/cmake/xproinc.cmake)
 list (APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 include (DetectCPPZMQVersion)
@@ -11,8 +10,8 @@ if (NOT TARGET libzmq AND NOT TARGET libzmq-static)
   if(COMMAND xpFindPkg)
     find_package(libzmq)
     set(ZeroMQ_FOUND TRUE)
-    set(_libzmq ${XP_NAMESPACE}::libzmq)
-    set(_libzmqStatic ${XP_NAMESPACE}::libzmq-static)
+    set(_libzmq libzmq::libzmq)
+    set(_libzmqStatic libzmq::libzmq-static)
     set(installTargets cppzmq-static)
   else()
     find_package(ZeroMQ QUIET)
@@ -70,15 +69,15 @@ include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
 set(targetsFile ${PROJECT_NAME}Targets)
-if(DEFINED XP_NAMESPACE)
-  xpExternPackage(NAMESPACE ${XP_NAMESPACE}
-    TARGETS_FILE ${targetsFile} LIBRARIES ${installTargets}
-    BASE v${cppzmq_VERSION} XPDIFF "patch" DEPS libzmq
+if(COMMAND xpExternPackage)
+  xpExternPackage(TARGETS_FILE ${targetsFile} EXPORT ${PROJECT_NAME}-targets
+    LIBRARIES ${installTargets} DEFAULT_TARGETS cppzmq-static
+    BASE v${cppzmq_VERSION} XPDIFF "patch"
     WEB "https://zeromq.org/" UPSTREAM "github.com/zeromq/cppzmq"
     DESC "header-only C++ binding for libzmq"
     LICENSE "[MPL-2.0](http://wiki.zeromq.org/area:licensing 'Mozilla Public License 2.0')"
     )
-  set(nSpace ${XP_NAMESPACE}::)
+  set(nSpace ${PROJECT_NAME}::)
   set(nameSpace NAMESPACE ${nSpace})
 elseif(NOT DEFINED CMAKE_INSTALL_CMAKEDIR)
   set(CMAKE_INSTALL_CMAKEDIR share/cmake/${PROJECT_NAME})
@@ -117,7 +116,7 @@ set(CMAKE_SIZEOF_VOID_P ${CPPZMQ_SIZEOF_VOID_P})
 install(EXPORT ${PROJECT_NAME}-targets
         FILE ${targetsFile}.cmake ${nameSpace}
         DESTINATION ${CPPZMQ_CMAKECONFIG_INSTALL_DIR})
-if(NOT DEFINED XP_NAMESPACE)
+if(NOT COMMAND xpExternPackage)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
               ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
               DESTINATION ${CPPZMQ_CMAKECONFIG_INSTALL_DIR})

@@ -7,7 +7,7 @@
       "binaryDir": "${sourceDir}/_bld-${presetName}",
       "cacheVariables": {
         "CPPZMQ_BUILD_TESTS": "OFF",
-        "XP_NAMESPACE": "xpro"
+        "CMAKE_EXPERIMENTAL_GENERATE_SBOM": "ca494ed3-b261-4205-a01f-603c95e4cae0"
       }
     }
   ],
