@@ -51,8 +51,12 @@ foreach (target cppzmq cppzmq-static)
                                                  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 endforeach()
 
+if(TARGET ${_libzmq})
 target_link_libraries(cppzmq INTERFACE ${_libzmq})
+endif()
+if(TARGET ${_libzmqStatic})
 target_link_libraries(cppzmq-static INTERFACE ${_libzmqStatic})
+endif()
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)

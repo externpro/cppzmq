@@ -33,11 +33,17 @@ add_executable(
     timers.cpp
 )
 
+if(COMMAND xpExternPackage)
+  set(cppzmq_tgt cppzmq-static)
+else()
+  set(cppzmq_tgt cppzmq)
+endif()
+
 target_include_directories(unit_tests PUBLIC ${CATCH_MODULE_PATH})
 target_link_libraries(
     unit_tests
     PRIVATE Catch2::Catch2WithMain
-    PRIVATE cppzmq
+    PRIVATE ${cppzmq_tgt}
     PRIVATE ${CMAKE_THREAD_LIBS_INIT}
 )
 
